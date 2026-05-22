@@ -1,98 +1,137 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+// app/(tabs)/index.tsx
+import { useNavigation } from "@react-navigation/native";
+import React from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+// Importamos los datos locales (asegurate que estas rutas sean correctas en tu proyecto)
+import { categorias } from "@/src/data/categorias";
+import { etiquetas } from "@/src/data/etiquetas";
+import { marcas } from "@/src/data/marcas";
 
-export default function HomeScreen() {
+// Importamos las rutas y la función para construirlas
+import { AppRoute, ROUTES } from "@/src/navigation/routes";
+
+export default function IndexScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.headerTitle}>Explorar Alimentos</Text>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      {/* Sección de Categorías */}
+      <SeccionList
+        title="Categorías"
+        items={categorias}
+        route={ROUTES.CATEGORIA}
+      />
+
+      {/* Sección de Marcas */}
+      <SeccionList 
+        title="Marcas" 
+        items={marcas} 
+        route={ROUTES.MARCA} 
+      />
+
+      {/* Sección de Etiquetas */}
+      <SeccionList
+        title="Etiquetas"
+        items={etiquetas}
+        route={ROUTES.ETIQUETA}
+      />
+    </ScrollView>
   );
 }
 
+// --- COMPONENTE INTERNO PARA LAS LISTAS ---
+
+type ListItem = {
+  id: string;
+  nombre: string;
+};
+
+type SectionListProps = {
+  title: string;
+  items: ListItem[];
+  route: AppRoute;
+};
+
+function SeccionList({ title, items, route }: SectionListProps) {
+  const navigation: any = useNavigation();
+
+  return (
+    <View style={styles.listBlock}>
+      <Text style={styles.listTitle}>{title}</Text>
+      <View style={styles.itemsContainer}>
+        {items.map((it) => (
+          <Pressable
+            key={it.id}
+            style={({ pressed }) => [
+              styles.itemButton,
+              pressed && styles.itemButtonPressed,
+            ]}
+            onPress={() => navigation.navigate(route as any, { id: it.id })}
+          >
+            <Text style={styles.itemText}>{it.nombre}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+
+// --- ESTILOS ---
+
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    backgroundColor: "#f8fafc", // Un gris muy clarito para el fondo
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#0f172a",
+    marginBottom: 24,
+    textAlign: "center",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  listBlock: {
+    marginBottom: 30,
+    width: "100%",
+  },
+  listTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#334155",
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: "#1d4ed8", // Azul de tu app
+    paddingLeft: 10,
+  },
+  itemsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  itemButton: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    // Sombra suave
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  itemButtonPressed: {
+    backgroundColor: "#eff6ff",
+    borderColor: "#bfdbfe",
+  },
+  itemText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#475569",
   },
 });
